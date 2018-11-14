@@ -1,0 +1,24 @@
+var IxoKeep = artifacts.require("IxoKeep");
+var TimelockRegistry = artifacts.require("TimelockedTokenRegistry");
+var IxoERC20Token = artifacts.require("../node_modules/ixo-solidity/contracts/token/IxoERC20Token");
+
+module.exports = function (deployer, network, accounts) {
+  switch (network) {
+  case 'ganache':
+    initialize();
+    break;
+  default:
+    throw new Error('No initialization function defined for this network');
+  }
+};
+async function initialize () {
+    try{
+        const timelockRegistry = await TimelockRegistry.deployed();
+        const ixoERC20Token = await IxoERC20Token.deployed();
+        timelockRegistry.initialize(IxoERC20Token.address);
+        console.log('Initialized');
+    }catch (err){
+        console.err(err);
+
+    }
+}

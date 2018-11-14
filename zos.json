@@ -1,0 +1,9 @@
+{
+  "zosversion": "2",
+  "name": "ixo-timelock-contract",
+  "version": "0.1.0",
+  "contracts": {
+    "TimelockedTokenRegistry": "TimelockedTokenRegistry",
+    "IxoKeep": "IxoKeep"
+  }
+}
