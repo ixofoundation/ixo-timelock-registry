@@ -4,17 +4,16 @@ import networks from './networks';
 class Web3Proxy {
 	constructor(
 		erc20ContractAbiJson,
-		erc20ContractAddress,
-		timelockRegistryContractAbiJson,
-		timelockRegistryContractAddress,
+        erc20ContractAddress,
+        timelockTokenAbi,        
 		selectionChangeHandler,
-		defaultNetwork = networks.MAIN_NETWORK
+		defaultNetwork = networks.ROPSTEN_NETWORK
 	) {
 		this._selectedAccount = '';
-		this._erc20ContractAbiJson = erc20ContractAbiJson;
+		this._erc20ContractAbiJson = erc20ContractAbiJson.abi;
 		this._erc20ContractAddress = erc20ContractAddress;
-		this._timelockRegistryContractAbiJson = timelockRegistryContractAbiJson;
-		this._timelockRegistryContractAddress = timelockRegistryContractAddress;
+        this._timelockTokenAbi = timelockTokenAbi.abi;
+        this._timelockTokenData = timelockTokenAbi.bytecode;
 		this._selectionChangeHandler = selectionChangeHandler;
 		this._defaultNetwork = defaultNetwork;
 
@@ -30,8 +29,9 @@ class Web3Proxy {
 	initWithCurrentProvider = provider => {
 		this._web3 = new Web3(provider);
 		this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
-		this._timelockRegistryContract = new this._web3.eth.Contract(this._timelockRegistryContractAbiJson, this._timelockRegistryContractAddress);
-		this._accountPollInterval = setInterval(() => {
+		this._timelockContract = new this._web3.eth.Contract(this._timelockTokenAbi);
+        
+        this._accountPollInterval = setInterval(() => {
 			this._pollForAccount();
 		}, 100);
 	};
@@ -44,7 +44,9 @@ class Web3Proxy {
 				this._selectionChangeHandler();
 			}
 		});
-	};
+    };
+    
+    
 
 	getSelectedAccount = () => {
 		return this._selectedAccount;
@@ -55,18 +57,20 @@ class Web3Proxy {
 	};
 
 	getBalance = account => {
-		const contract = this._erc20Contract;
 
+		const contract = this._erc20Contract;
 		return new Promise((resolve, reject) => {
 			contract.methods
 				.balanceOf(account)
-				.call({
-					from: account
-				})
+				.call()
 				.then(result => {
-					resolve(result);
+                    console.log(`getBalance balance : ${result}`)
+
+					resolve(result/100000000);
 				})
 				.catch(error => {
+        console.log(`getBalance error : ${error}`)
+
 					reject(error);
 				});
 		});
@@ -104,9 +108,11 @@ class Web3Proxy {
 
 		return new Promise((resolve, reject) => {
 			contract.methods
-				.transfer(beneficiaryAddress, amount)
+				.transfer(beneficiaryAddress, amount* 100000000)
 				.send({
-					from: this._selectedAccount
+                    from: this._selectedAccount,
+                    gas: 3500000,
+                    gasPrice: '20000000000'
 				})
 				.on('transactionHash', hash => {
 					resolve(hash);
@@ -124,7 +130,9 @@ class Web3Proxy {
 			contract.methods
 				.setMinter(mintingAddress)
 				.send({
-					from: mintingAddress
+                    from: this._selectedAccount,
+                    gas: 3500000,
+                    gasPrice: '20000000000'
 				})
 				.on('transactionHash', hash => {
 					resolve(hash);
@@ -145,7 +153,9 @@ class Web3Proxy {
 			contract.methods
 				.mint(beneficiaryAddress, amount)
 				.send({
-					from: this._selectedAccount
+                    from: this._selectedAccount,
+                    gas: 3500000,
+                    gasPrice: '20000000000'
 				})
 				.on('transactionHash', hash => {
 					resolve(hash);
@@ -153,70 +163,37 @@ class Web3Proxy {
 				.on('error', error => {
 					reject(error);
 				})
-				.on('receipt', function (receipt) {
+				.on('receipt', receipt => {
 					console.log(receipt.contractAddress); // contains the new contract address
 				});
 		});
 	};
 
-	addTimelock = (benificiary, releaseTime) => {
-		const contract = this._timelockRegistryContract;
-
+    createNewTimeLockContract = (beneficiaryAddress, releaseTime) => {
+        const timelockContract = new this._web3.eth.Contract(this._timelockTokenAbi);
+        console.log(this._timelockTokenData);
 		return new Promise((resolve, reject) => {
-			contract.methods
-				.addNewTimelock(benificiary, releaseTime)
-				.send({
-					from: this._selectedAccount
-				})
-				.on('transactionHash', hash => {
-					resolve(hash);
-				})
-				.on('receipt', receipt => {
-					console.log(JSON.stringify(receipt)); // contains the new contract address
-				})
-				.on('error', error => {
-					reject(error);
-				})
-		});
-    };
-    
-    releaseForBenificiary = (benificiary) => {
-		const contract = this._timelockRegistryContract;
 
-		return new Promise((resolve, reject) => {
-			contract.methods
-				.releaseForBenificiary(benificiary)
-				.send({
-					from: this._selectedAccount
-				})
-				.on('transactionHash', hash => {
-					resolve(hash);
-				})
-				.on('receipt', receipt => {
-					console.log(JSON.stringify(receipt)); // contains the new contract address
-				})
-				.on('error', error => {
-					reject(error);
-				})
+            timelockContract.deploy({
+                data: this._timelockTokenData,
+                arguments: [this._erc20ContractAddress, beneficiaryAddress, releaseTime]
+            })
+            .send({
+                from: this._selectedAccount,
+                gas: 3500000,
+                gasPrice: '20000000000'
+            })
+            .on('error', error => { 
+                reject(error);
+            })
+            .on('transactionHash', hash => {
+                console.log(hash);
+            })
+            .on('receipt', receipt => {
+                resolve(receipt.contractAddress) // contains the new contract address
+            })
 		});
-	};
 
-	balanceOfTimelock = (benificiary) => {
-		const contract = this._timelockRegistryContract;
-
-		return new Promise((resolve, reject) => {
-			contract.methods
-				.lockedBalance(benificiary)
-				.call({
-					from: this._selectedAccount
-				})
-				.then(result => {
-					resolve(result);
-				})
-				.catch(error => {
-					reject(error);
-				})
-		});
-	};
+    }
 }
 export default Web3Proxy;

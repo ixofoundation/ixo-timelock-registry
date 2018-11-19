@@ -18,10 +18,6 @@ class Header extends Component {
       <Navbar inverse collapseOnSelect>
         <Navbar.Toggle right="true" onClick={this.toggle} />
         <Navbar.Brand href="#brand">IXO Pre-sale Time Lock</Navbar.Brand>
-          <Nav>
-            <NavItem onClick={this.state.mintixo} href="#">Mint</NavItem>
-            <NavItem onClick={this.state.managetimelocks} href="#">Time locks</NavItem>
-          </Nav>
       </Navbar>
     );
   }

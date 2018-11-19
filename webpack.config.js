@@ -2,12 +2,15 @@
 var webpack = require('webpack');
 var path = require('path');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const Dotenv = require('dotenv-webpack');
 var APP = path.resolve(__dirname, 'src');
 var BUILD = path.resolve(__dirname, 'build');
 
 var config = {
   // webpack output
+  node: {
+  fs: 'empty'
+},
   mode: 'development',
   entry: APP + '/index.js',
   output: {
@@ -39,6 +42,7 @@ var config = {
     ]
   },
   plugins: [
+    new Dotenv(),
     new HtmlWebpackPlugin({
       template: './src/index.html',
       filename: 'index.html',
