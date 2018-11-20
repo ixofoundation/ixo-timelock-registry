@@ -17,7 +17,6 @@ class ListTimelocks extends Component {
         onQuery : this.props.onQuery, 
         onRelease : this.props.onRelease, 
         onBeneficiaryFileLoad : this.props.onBeneficiaryFileLoad,
-        retrieveLockedBalance : this.props.retrieveLockedBalance,
         beneficiariesFile : '',
         pendingTimeLocks: [],
         pendingTransfers: []
@@ -88,7 +87,7 @@ class ListTimelocks extends Component {
                                                 <td>{beneficiary.name}</td>
                                                 <td>{beneficiary.amount}</td>
                                                 {this.renderTimelockButton(beneficiary.timelockAddress, beneficiary.address, theMomentOfRelease.unix(), onTimelock)}
-                                                {this.renderTransferButton(beneficiary.timelockAddress, beneficiary.amount, onTransfer)}
+                                                {this.renderTransferButton(beneficiary.address, beneficiary.timelockAddress, beneficiary.hasTransfered, beneficiary.amount, beneficiary.txHash, onTransfer)}
                                                 {this.renderReleaseButton(beneficiary.timelockAddress, canRelease, onRelease)}
                                         </tr>);
                                     })
@@ -99,31 +98,25 @@ class ListTimelocks extends Component {
         } else return <div><h3>There are no Beneficiaries loaded, please load file ...</h3></div>
 
     }
-    //don't need this
-    //but need to lookup amount in timelock
-    hasTransfered = async (amount, timelockAddress) => {
-        if (timelockAddress){
-            var lockedBalance =  await this.state.retrieveLockedBalance(timelockAddress)
-            console.log(`amount: ${amount} : for ${timelockAddress} = ${lockedBalance}`)
-            return(Number(lockedBalance) === Number(amount))
-        }else{
-            return false
-        }
-    }
-    //check if already transfered
-    //transfer/locked amount or a checkbox
-    renderTransferButton = (timelockAddress, amount, onTransfer) => {
 
+    renderTransferButton =  (beneficiaryAddress, timelockAddress, hasTransfered, amount, txHash, onTransfer) => {
+        console.log(`txhash : ${txHash}`)
+        console.log(`hasTransfered : ${hasTransfered}`)
+        console.log(`amount : ${amount}`)
+
+
+        // debugger;
         if (timelockAddress){
             if (this.state.pendingTransfers.indexOf(timelockAddress) > -1){
                 return <td><Button disabled>Pending...</Button></td>
-            }else if(this.hasTransfered(amount, timelockAddress) === true){
+            }else if( hasTransfered || txHash){
                 return <td><Button disabled>Transfered</Button></td>
+            }else{
+               return <td><Button onClick={(e) => {
+                    this.addPendingTransfer(timelockAddress)
+                    onTransfer(beneficiaryAddress, timelockAddress, amount, (timelockAddress) => {this.removePendingTransfer(timelockAddress)})
+                }}>Transfer</Button></td>
             }
-            return <td><Button onClick={(e) => {
-                this.addPendingTransfer(timelockAddress)
-                onTransfer(timelockAddress, amount, (timelockAddress) => {this.removePendingTransfer(timelockAddress)})
-            }}>Transfer</Button></td>
         }else{
             return <td><Button disabled>Transfer</Button></td>
         }
@@ -188,10 +181,12 @@ class ListTimelocks extends Component {
             // var file = new File(JSON.stringify(this.state.beneficiaries), beneficiariesFile, {type: "text/plain;charset=utf-8"});
             var fileString
             var filename = this.state.beneficiariesFile.name.split('.')[0];
+            filename = this.state.beneficiariesFile.name.split('_')[0];
+
             var ext = this.state.beneficiariesFile.name.split('.')[1];
             Object.keys(this.state.beneficiaries).map((beneficiaryAddress, index) => {
                 var beneficiary = this.state.beneficiaries[beneficiaryAddress]
-                fileString = `${fileString?fileString+'\r\n':''}${beneficiaryAddress},${beneficiary.name},${beneficiary.amount}${beneficiary.timelockAddress?','+beneficiary.timelockAddress:''}`
+                fileString = `${fileString?fileString+'\r\n':''}${beneficiaryAddress},${beneficiary.name},${beneficiary.amount}${beneficiary.timelockAddress?','+beneficiary.timelockAddress:''}${beneficiary.txHash?','+beneficiary.txHash:''}`
             })
             var file = new File([fileString], filename+'_'+moment().format('MMDDYYYYHHmmss')+'.'+ext, {type: "text/plain"})
 
@@ -202,11 +197,5 @@ class ListTimelocks extends Component {
 
     }
 
-    // ListTimelocks.propTypes = {
-    //     releaseDate: PropTypes.string.isRequired,
-    //     onTimelock: PropTypes.func.isRequired,
-    //     onRelease: PropTypes.func.isRequired,
-    //     onTransfer: PropTypes.func.isRequired
-    // };
 }
 export default ListTimelocks;

@@ -6,11 +6,12 @@
 // }
 
 // console.log(dotconfig.parsed)
-// require('dotenv').config()
+require('dotenv').config()
 import moment from 'moment';
 
 var network = 'ropsten';
-const ixoTokenOwner = "0x00cd126784792412be40795b2E8Bb4Fb5Aa4b19d"
+const ixoTokenOwner = process.env.IXO_TOKEN_OWNER
+//"0x00cd126784792412be40795b2E8Bb4Fb5Aa4b19d"
 const intemediaryAddress = "0xb23913B6eC2C50dF8bF70F9758505DF34Ff50d36"
 var minters = ["0xd436B44841Ef86B103bdfbb7e69C217a3Fd0c78c"]
 
@@ -20,19 +21,19 @@ const WEB3_ROPSTEN_FALLBACK_URL = "https://ropsten.infura.io/v3/109382c3b8ed4f2c
 const WEB3_MAINNET_FALLBACK_URL = "https://ropsten.infura.io/v3/109382c3b8ed4f2cbab2f0d5cceb629a"
 
 //IXO Token
-const IXO_TOKEN_CONTRACT_ADDRESS_DEV = "0xc89ce4735882c9f0f0fe26686c53074e09b0d550"
-const IXO_TOKEN_CONTRACT_ADDRESS_ROPSTEN = "0x645dd0c9f7aaff629344cd76dd8a9e26a2a39aca"
-const IXO_TOKEN_CONTRACT_ADDRESS_MAINNET = ""
+// const IXO_TOKEN_CONTRACT_ADDRESS_DEV = "0xc89ce4735882c9f0f0fe26686c53074e09b0d550"
+// const IXO_TOKEN_CONTRACT_ADDRESS_ROPSTEN = "0x645dd0c9f7aaff629344cd76dd8a9e26a2a39aca"
+// const IXO_TOKEN_CONTRACT_ADDRESS_MAINNET = ""
 
 
-var ixoTokenAddress = IXO_TOKEN_CONTRACT_ADDRESS_DEV;
+var ixoTokenAddress = process.env.IXO_TOKEN_ADDRESS
 var web3Fallback = WEB3_DEV_FALLBACK_URL;
 
 if(network === 'mainnet'){
-    ixoTokenAddress = IXO_TOKEN_CONTRACT_ADDRESS_MAINNET
+    // ixoTokenAddress = IXO_TOKEN_CONTRACT_ADDRESS_MAINNET
     web3Fallback = WEB3_MAINNET_FALLBACK_URL
 }else if(network === 'ropsten'){
-    ixoTokenAddress = IXO_TOKEN_CONTRACT_ADDRESS_ROPSTEN
+    // ixoTokenAddress = IXO_TOKEN_CONTRACT_ADDRESS_ROPSTEN
     web3Fallback = WEB3_ROPSTEN_FALLBACK_URL
 }
 import ixoTokenAbi from '../build/contracts/IxoERC20Token.json'
@@ -53,6 +54,8 @@ var RELEASE_DATE_FORMAT = "DD-MM-YYYY HH:mm:ss";
 var releaseDateEnv = process.env.TIME_RELEASE_DATE
 var configuredReleaseDate
 console.log(`releaseDateEnv: ${releaseDateEnv}`)
+console.log(`ixoTokenAddress: ${ixoTokenAddress}`)
+
 const isReleaseDateValid = dateTime => {
     var theMo = moment(dateTime, RELEASE_DATE_FORMAT);
     if(moment(theMo).isValid()){
@@ -63,7 +66,7 @@ const isReleaseDateValid = dateTime => {
 if (isReleaseDateValid(releaseDateEnv)){
     configuredReleaseDate = releaseDateEnv
 }
-export {configuredReleaseDate, RELEASE_DATE_FORMAT, isReleaseDateValid, network, web3Fallback, ixoTokenAbi, ixoTokenAddress,benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};
+export {configuredReleaseDate, RELEASE_DATE_FORMAT, isReleaseDateValid, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};
 
 
 //deploy new ixo token?

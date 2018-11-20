@@ -13,6 +13,10 @@ import MintInput from './MintInput';
 import CreateMinterInput from './CreateMinterInput';
 import AccountInfo from './AccountInfo';
 import ListTimelocks from './ListTimelocks';
+import CreateIxoToken from './CreateIxoToken';
+import {
+    Button
+  } from 'react-bootstrap';
 
 let regeneratorRuntime =  require("regenerator-runtime");
 
@@ -27,6 +31,7 @@ class TimelockBody extends Component {
         isContractOwner: false,
         isContractMinter: false,
         isIntermediary: false,
+        pendingMint: false,
         minterAddress: minters[0],
         isMinter,
         mintingTransactionQuantity: 0,
@@ -38,7 +43,8 @@ class TimelockBody extends Component {
             this.handleSelectionChange,
             network
         ),
-        erc20ContractAddress: ixoTokenAddress, 
+        erc20ContractAddress: ixoTokenAddress,
+        newIxoToken: false,
         balance: 0,
         lockedBalance: 0,
         beneficiaries: {},
@@ -65,7 +71,10 @@ class TimelockBody extends Component {
             const isContractOwner = this.state.web3Proxy.getSelectedAccount() === ixoTokenOwner;
             const isContractMinter = this.state.isMinter(this.state.web3Proxy.getSelectedAccount());
             const isIntermediary = this.state.web3Proxy.getSelectedAccount() === intemediaryAddress;
-            var balance =  this.getBalance(this.state.web3Proxy.getSelectedAccount());
+            var balance =  0
+            if (this.state.erc20ContractAddress){
+                balance = this.getBalance(this.state.web3Proxy.getSelectedAccount());
+            }
             var lockedBalance = 0
             if(this.state.beneficiaries){
                 var timelock = this.state.beneficiaries[this.state.web3Proxy.getSelectedAccount()]
@@ -76,8 +85,8 @@ class TimelockBody extends Component {
             Promise.all([balance, lockedBalance]).then((values) => {
                 
                 this.setState({ 
-                    balance : values[0], 
-                    lockedBalance: values[1], 
+                    balance : values[0]?values[0]:0, 
+                    lockedBalance: values[1]?values[1]:0, 
                     isContractOwner,
                     isContractMinter, 
                     isIntermediary,
@@ -125,7 +134,8 @@ class TimelockBody extends Component {
     
 
     handleMinterTransactionAddressChange = event => {
-		this.setState({ minterTransactionAccount: event.target.value });
+        console.log(`minterAddress: ${event.target.value}`)
+		this.setState({ minterAddress: event.target.value });
 	};
 
 
@@ -162,14 +172,21 @@ class TimelockBody extends Component {
         //this.updateBeneficiariesFile(this.state.beneficiariesFile);
     }
 
+    updateBeneficiaryTxHash= (beneficiaryAddress, txHash) => {
+        let bCopy = Object.assign({}, this.state.beneficiaries);    //creating copy of object
+        bCopy[beneficiaryAddress].txHash = txHash;                        //updating value
+        this.setState({beneficiaries: bCopy});
+        //this.updateBeneficiariesFile(this.state.beneficiariesFile);
+    }
+
 
     handleTokenMinting = event => {
 		if (this.state.mintingTransactionBeneficiaryAccount && this.state.mintingTransactionQuantity > 0) {
+            this.setState({pendingMint: true})
 			this.state.web3Proxy
             .mintTo(this.state.mintingTransactionBeneficiaryAccount, this.state.mintingTransactionQuantity * 100000000)
             .then(txHash => {
-                console.log(`TX: ${txHash}`);
-                this.setState({ mintingTransactionBeneficiaryAccount: '', mintingTransactionQuantity: 0 });
+                this.setState({ mintingTransactionBeneficiaryAccount: '', mintingTransactionQuantity: 0, pendingMint: false});
             })
             .catch(error => {
                 console.log(`error: ${error}`);
@@ -177,20 +194,32 @@ class TimelockBody extends Component {
 		}
     };
     
-    handleCreateMinter = event => {
-        console.log(this.state)
-		if (this.state.minterTransactionAccount) {
-			this.state.web3Proxy
-            .setMinter(this.state.minterTransactionAccount)
-            .then(txHash => {
-                console.log(`TX: ${txHash}`);
-                addMinter(this.state.minterTransactionAccount)
-                this.setState({ minterTransactionAccount: '' });
-            })
-            .catch(error => {
-                console.log(`error: ${error}`);
-            });
-		}
+    handleCreateIxoToken = event => {
+        this.state.web3Proxy
+        .createIxoTokenContract()
+        .then(ixoTokenAddress => {
+            console.log(`IXO ERC20 Token Address: ${ixoTokenAddress}`);
+            this.setState({ erc20ContractAddress: ixoTokenAddress, newIxoToken: true });
+        })
+        .catch(error => {
+            console.log(`error: ${error}`);
+        });
+        
+    }
+
+ 
+    handleCreateMinter = (minter) => {
+        console.log(`handleCreateMinter: ${minter}`)
+
+        this.state.web3Proxy
+        .setMinter(minter)
+        .then(txHash => {
+            console.log(`TX: ${txHash}`);
+            addMinter(minter)
+        })
+        .catch(error => {
+            console.log(`error: ${error}`);
+        });
 	};
 
     calculateTimeLeft = (releaseTime) => {
@@ -208,12 +237,12 @@ class TimelockBody extends Component {
         });
     }
 
-    handleTransfer = (timelockAddress, amount, handleTransfer) => {
+    handleTransfer = (beneficiaryAddress, timelockAddress, amount, handleTransferComplete) => {
         this.state.web3Proxy
         .transferTo(timelockAddress, amount)
         .then(txHash => {
-            console.log(`TX: ${txHash}`);
-            handleTransfer(timelockAddress)
+            this.updateBeneficiaryTxHash(beneficiaryAddress, txHash)
+            handleTransferComplete(timelockAddress)
         }).catch(error => {
             console.log(`error: ${error}`);
         });
@@ -227,6 +256,7 @@ class TimelockBody extends Component {
         reader.onload = (progressEvent) => {
             var beneficiaries = {}
             var lines = reader.result.split('\n');
+            var transferPromises = []
             for(var line = 0; line < lines.length; line++){
                 var lineString = lines[line];
 
@@ -236,26 +266,53 @@ class TimelockBody extends Component {
                     var name = splitLine[1];
                     var amount = parseInt(splitLine[2].trim(), 10);
                     var timelockAddress
+                    var txHash
                     if (splitLine.length > 2){
                         timelockAddress = splitLine[3]
                         if (timelockAddress){
                             timelockAddress = timelockAddress.replace(/\r?\n|\r/, "")
                         }
                     }
+                    transferPromises.push(this.hasTransfered(address, amount, timelockAddress))
+
+                    if (splitLine.length > 3){
+                        txHash = splitLine[4]
+                    }
     
                     beneficiaries[address] = {
                         address,
                         name,
                         amount,
-                        timelockAddress
+                        timelockAddress,
+                        txHash
                     }
+                }else{
+                    console.log('Error Reading file')
                 }
             }
-            if (beneficiaries && Object.entries(beneficiaries).length > 0){
-                this.setState({beneficiaries, beneficiariesFile: file})
-            }
+            Promise.all(transferPromises).then(res => {
+                for(var i = 0; i< res.length; i++){
+                    beneficiaries[res[i].address].hasTransfered = res[i].hasTransfered
+                }
+                if (beneficiaries && Object.entries(beneficiaries).length > 0){
+                    this.setState({beneficiaries, beneficiariesFile: file})
+                }
+            })
+            
         };
         reader.readAsText(file);
+    }
+
+    hasTransfered = async (address, amount, timelockAddress) => {
+        if (timelockAddress){
+            var lockedBalance =  await this.getBalance(timelockAddress)
+            console.log(`address: ${address} - timelockAddress: ${timelockAddress} - lockedBalance: ${lockedBalance} - amount: ${amount}`)
+
+
+            return {address, hasTransfered:(lockedBalance === amount)};
+        }else{
+            return {address, hasTransfered:false}
+        }
     }
   
     getCurrentDateTime = () => {
@@ -294,18 +351,27 @@ class TimelockBody extends Component {
     return ( 
       <div>
         
-        { this.state.isContractOwner && (<CreateMinterInput 
+        { (this.state.isContractOwner && !this.state.newIxoToken && this.state.erc20ContractAddress) && (<CreateMinterInput 
             minterAddress={this.state.minterAddress}
             handleMinterAddressChange={this.handleMinterTransactionAddressChange}
             handleCreateMinter={this.handleCreateMinter}
         /> 
         )}
-        { this.state.isContractMinter && (<MintInput 
+         { (this.state.isContractOwner && !this.state.erc20ContractAddress) && (<CreateIxoToken 
+             handleCreateIxoToken={this.handleCreateIxoToken}
+        /> 
+        )}
+        {(this.state.isContractOwner && this.state.newIxoToken && this.state.erc20ContractAddress) && (
+            <div><h3>Update the .env file with IXO_TOKEN_ADDRESS="{this.state.erc20ContractAddress}"</h3>
+            <Button onClick={() => {this.setState({newIxoToken: false})}}>Done</Button></div>
+        )}
+        { ((this.state.isContractMinter || (this.state.isContractMinter && this.state.isContractOwner))) && (<MintInput 
             quantity={this.state.mintingTransactionQuantity}
             handleQuantityChange={this.handleMintingTransactionQuantityChange}
             beneficiaryAddress={this.state.mintingTransactionBeneficiaryAccount}
             handleBeneficiaryAddressChange={this.handleMintingTransactionBeneficiaryAddressChange}
             handleTokenMinting={this.handleTokenMinting}
+            pending={this.state.pendingMint}
         /> 
         )}
         { (this.state.isIntermediary && this.state.enteringReleaseDate) && (
@@ -326,7 +392,6 @@ class TimelockBody extends Component {
             onRelease={this.handleRelease}
             onTransfer={this.handleTransfer}
             onBeneficiaryFileLoad={this.handleBeneficiaryFileLoad}
-            retrieveLockedBalance={this.getBalance}
             /> 
         )}
         {(!this.state.loading && !this.state.isContractOwner && !this.state.isContractMinter && !this.state.isIntermediary)

@@ -14,6 +14,8 @@ class Web3Proxy {
 		this._erc20ContractAddress = erc20ContractAddress;
         this._timelockTokenAbi = timelockTokenAbi.abi;
         this._timelockTokenData = timelockTokenAbi.bytecode;
+        this._ixoTokenData = erc20ContractAbiJson.bytecode;
+
 		this._selectionChangeHandler = selectionChangeHandler;
 		this._defaultNetwork = defaultNetwork;
 
@@ -27,8 +29,12 @@ class Web3Proxy {
 	}
 
 	initWithCurrentProvider = provider => {
-		this._web3 = new Web3(provider);
-		this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
+        this._web3 = new Web3(provider);
+        if(this._erc20ContractAddress){
+            this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
+        }else{
+            this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson);
+        }
 		this._timelockContract = new this._web3.eth.Contract(this._timelockTokenAbi);
         
         this._accountPollInterval = setInterval(() => {
@@ -115,16 +121,20 @@ class Web3Proxy {
                     gasPrice: '20000000000'
 				})
 				.on('transactionHash', hash => {
-					resolve(hash);
+					console.log(hash); // contains the new contract address
 				})
 				.on('error', error => {
 					reject(error);
-				});
+				}).on('receipt', receipt => {
+                    resolve(receipt.transactionHash) // contains the new contract address
+                })
 		});
 	};
 
 	setMinter = mintingAddress => {
 		const contract = this._erc20Contract;
+        console.log(`minting address: ${mintingAddress}`)
+        console.log(`token address: ${this._erc20ContractAddress}`)
 
 		return new Promise((resolve, reject) => {
 			contract.methods
@@ -169,6 +179,30 @@ class Web3Proxy {
 		});
 	};
 
+    createIxoTokenContract = () => {
+        const ixoTokenContract = this._erc20Contract;
+        return new Promise((resolve, reject) => {
+
+            ixoTokenContract.deploy({
+                data: this._ixoTokenData, arguments: {}
+            })
+            .send({
+                from: this._selectedAccount,
+                gas: 3500000,
+                gasPrice: '20000000000'
+            })
+            .on('error', error => { 
+                reject(error);
+            })
+            .on('transactionHash', hash => {
+                console.log(hash);
+            })
+            .on('receipt', receipt => {
+                resolve(receipt.contractAddress) // contains the new contract address
+            })
+		});
+
+    }
     createNewTimeLockContract = (beneficiaryAddress, releaseTime) => {
         const timelockContract = new this._web3.eth.Contract(this._timelockTokenAbi);
         console.log(this._timelockTokenData);
@@ -184,6 +218,7 @@ class Web3Proxy {
                 gasPrice: '20000000000'
             })
             .on('error', error => { 
+                console.log(JSON.stringify(error.message))
                 reject(error);
             })
             .on('transactionHash', hash => {

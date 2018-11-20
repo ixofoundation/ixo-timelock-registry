@@ -13,7 +13,7 @@ const CreateMinter = ({ minterAddress, handleMinterAddressChange, handleCreateMi
             <FormControl
                 value={minterAddress} 
                 onChange={handleMinterAddressChange} />
-            <Button onClick={handleCreateMinter}>Create Minter</Button>
+            <Button onClick={() => {handleCreateMinter(minterAddress)}}>Create Minter</Button>
         </div>
 );
 CreateMinter.propTypes = {

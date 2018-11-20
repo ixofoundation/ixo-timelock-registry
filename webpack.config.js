@@ -1,5 +1,5 @@
 // webpack only builds client code
-var webpack = require('webpack');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 var path = require('path');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
@@ -42,6 +42,9 @@ var config = {
     ]
   },
   plugins: [
+    new CopyWebpackPlugin([
+        { from: './public', to: 'public', force: true }
+      ]),
     new Dotenv(),
     new HtmlWebpackPlugin({
       template: './src/index.html',

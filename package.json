@@ -6,9 +6,10 @@
   "scripts": {
     "debug": "webpack --devtool source-map ./src/index.js ./build/bundle.js",
     "start_web_app": "webpack-dev-server --mode development --open --hot",
-    "build_client": "webpack",
+    "build_client": "webpack --mode development",
     "clean": "rm -rf build && mkdir build",
-    "build_client_watch": "webpack --watch"
+    "build_client_watch": "webpack --watch",
+    "build": "node build/bundle.js"
   },
   "author": "Phillip Gibb",
   "license": "ISC",
@@ -49,6 +50,7 @@
     "@babel/preset-react": "7.0.0",
     "babel-loader": "8.0.2",
     "babel-plugin-transform-regenerator": "^6.26.0",
+    "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^1.0.0",
     "eth-gas-reporter": "^0.1.12",
     "file-loader": "^2.0.0",
