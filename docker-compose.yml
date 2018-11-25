@@ -1,0 +1,21 @@
+version: '3.5'
+
+services:
+  nginx:
+    image: nginx
+
+  ixo-timelock-dapp:
+    image: trustlab/ixo-timelock-dapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    expose:
+      - '80'
+    environment:
+      - TIME_RELEASE_DATE="11-12-2018 23:59:59"
+      - IXO_TOKEN_OWNER="0xfB855E3bB71321812a64276CCC50c737668449Bf"
+      - IXO_TOKEN_ADDRESS=""
+      - IXO_MINTER=""
+      - CONSENT_WALLET_ADDRESS="0xb23913B6eC2C50dF8bF70F9758505DF34Ff50d36"

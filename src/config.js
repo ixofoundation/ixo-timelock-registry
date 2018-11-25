@@ -6,7 +6,7 @@
 // }
 
 // console.log(dotconfig.parsed)
-require('dotenv').config()
+// require('dotenv').config()
 import moment from 'moment';
 
 var network = 'ropsten';
@@ -53,30 +53,24 @@ const addMinter = address => {
 var RELEASE_DATE_FORMAT = "DD-MM-YYYY HH:mm:ss";
 var releaseDateEnv = process.env.TIME_RELEASE_DATE
 var configuredReleaseDate
+
+const getReleaseDate = () => {
+    if(!configuredReleaseDate){
+        return isReleaseDateValid(process.env.TIME_RELEASE_DATE)?process.env.TIME_RELEASE_DATE:null
+    }else{
+        return configuredReleaseDate
+    }
+}
 console.log(`releaseDateEnv: ${releaseDateEnv}`)
 console.log(`ixoTokenAddress: ${ixoTokenAddress}`)
 
 const isReleaseDateValid = dateTime => {
+    if(!dateTime) return false
     var theMo = moment(dateTime, RELEASE_DATE_FORMAT);
     if(moment(theMo).isValid()){
         return true
     }
     return false
 }
-if (isReleaseDateValid(releaseDateEnv)){
-    configuredReleaseDate = releaseDateEnv
-}
-export {configuredReleaseDate, RELEASE_DATE_FORMAT, isReleaseDateValid, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};
 
-
-//deploy new ixo token?
-// or use from config or load from file (fill in if file present)
-//load beneficiaries from file - if file present then load them in
-//add new and save?
-// table has:
-//create timelock - saves address
-// Transfer
-//Release
-
-//csv file: beneficiary, amount, timelock, transfered
-//enter Release Date
+export {getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};

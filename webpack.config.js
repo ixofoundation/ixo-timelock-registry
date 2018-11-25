@@ -2,17 +2,22 @@
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 var path = require('path');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-const Dotenv = require('dotenv-webpack');
 var APP = path.resolve(__dirname, 'src');
 var BUILD = path.resolve(__dirname, 'build');
+const webpack = require('webpack'); // remember to require this, because we DefinePlugin is a webpack plugin
 
-var config = {
+// var config = (env) ={
+    module.exports = () => {
+        return {
   // webpack output
   node: {
   fs: 'empty'
 },
-  mode: 'development',
-  entry: APP + '/index.js',
+  mode: 'production',
+  entry: [
+    APP + '/index.js',
+    'webpack-dev-server/client?http://0.0.0.0:80',
+  ],
   output: {
     path: BUILD,
     filename: 'bundle.js'
@@ -42,10 +47,11 @@ var config = {
     ]
   },
   plugins: [
+    // new webpack.DefinePlugin(envKeys),
+    new webpack.EnvironmentPlugin(),
     new CopyWebpackPlugin([
         { from: './public', to: 'public', force: true }
       ]),
-    new Dotenv(),
     new HtmlWebpackPlugin({
       template: './src/index.html',
       filename: 'index.html',
@@ -53,5 +59,5 @@ var config = {
     }) // generates the index.js file in /build directory
   ]
 };
-
-module.exports = config;
+    }
+// module.exports = config;

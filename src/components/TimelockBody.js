@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import {ixoTokenAbi, ixoTokenAddress} from '../config';
 import {timelockTokenAbi} from '../config';
 import {network, ixoTokenOwner, isMinter, addMinter, intemediaryAddress} from '../config';
-import {RELEASE_DATE_FORMAT, isReleaseDateValid, configuredReleaseDate} from '../config';
+import {RELEASE_DATE_FORMAT, isReleaseDateValid, getReleaseDate} from '../config';
 import {minters} from '../config';
 
 import moment from 'moment';
@@ -82,6 +82,7 @@ class TimelockBody extends Component {
                     lockedBalance =  this.getBalance(timelock.timelockAddress);
                 }
             }
+            debugger
             Promise.all([balance, lockedBalance]).then((values) => {
                 
                 this.setState({ 
@@ -92,8 +93,8 @@ class TimelockBody extends Component {
                     isIntermediary,
                     beneficiaries: this.state.beneficiaries?this.state.beneficiaries:{},
                     loading: false,
-                    timelockReleaseDate: configuredReleaseDate?configuredReleaseDate:'',
-                    enteringReleaseDate: configuredReleaseDate?false:true,
+                    timelockReleaseDate: getReleaseDate?getReleaseDate:'',
+                    enteringReleaseDate: getReleaseDate?false:true,
                     beneficiariesFile: ''
                 });                
             });
@@ -307,8 +308,6 @@ class TimelockBody extends Component {
         if (timelockAddress){
             var lockedBalance =  await this.getBalance(timelockAddress)
             console.log(`address: ${address} - timelockAddress: ${timelockAddress} - lockedBalance: ${lockedBalance} - amount: ${amount}`)
-
-
             return {address, hasTransfered:(lockedBalance === amount)};
         }else{
             return {address, hasTransfered:false}
@@ -323,7 +322,6 @@ class TimelockBody extends Component {
         e.preventDefault();
         if(isReleaseDateValid(this.state.timelockReleaseDate)){
             this.setState({enteringReleaseDate: false})
-            this.writeToDotEnv()
         }else{
             console.log(`releaseDate: ${this.state.timelockReleaseDate}`)
         }
@@ -331,17 +329,6 @@ class TimelockBody extends Component {
 
     handleReleaseDateChange = (e) => {
         this.setState({timelockReleaseDate: e.target.value})
-    }
-
-    writeToDotEnv= () => {
-        this.state.timelockReleaseDate
-        var envFile = ".env";
-        var file = new File(envFile);
-        var str = 'TIME_RELEASE_DATE="11-12-2018 23:59:59"';
-
-        file.open("w"); // open file with write access
-        file.write(str);
-        file.close();
     }
 
   render() {
