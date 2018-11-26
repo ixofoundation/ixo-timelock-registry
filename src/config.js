@@ -1,13 +1,20 @@
-// var dotenv = require('dotenv')
-// const dotconfig = dotenv.config()
+var dotenv = require('dotenv')
+const dotconfig = dotenv.config()
 
-// if (dotconfig.error) {
-//     throw dotconfig.error
-// }
+if (dotconfig.error) {
+    throw dotconfig.error
+}
 
 // console.log(dotconfig.parsed)
 // require('dotenv').config()
 import moment from 'moment';
+
+
+
+var mongoUser = process.env.MONGODB_DAPP_USER;
+var mongoPassword = process.env.MONGODB_DAPP_USER_PASSWORD;
+var mongoUrl = process.env.MONGODB_URL;
+
 
 var network = 'ropsten';
 const ixoTokenOwner = process.env.IXO_TOKEN_OWNER
@@ -53,6 +60,7 @@ const addMinter = address => {
 var RELEASE_DATE_FORMAT = "DD-MM-YYYY HH:mm:ss";
 var releaseDateEnv = process.env.TIME_RELEASE_DATE
 var configuredReleaseDate
+var apiPort = process.env.API_PORT
 
 const getReleaseDate = () => {
     if(!configuredReleaseDate){
@@ -73,4 +81,4 @@ const isReleaseDateValid = dateTime => {
     return false
 }
 
-export {getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};
+export {apiPort, mongoUser,mongoPassword,mongoUrl,getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};

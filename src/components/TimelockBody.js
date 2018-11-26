@@ -17,6 +17,7 @@ import CreateIxoToken from './CreateIxoToken';
 import {
     Button
   } from 'react-bootstrap';
+  import axios from "axios";
 
 let regeneratorRuntime =  require("regenerator-runtime");
 
@@ -314,6 +315,24 @@ class TimelockBody extends Component {
         }
     }
   
+    setReleaseDateDB = releaseDate => {
+        axios.post("/api/putReleaseDate", {
+            releaseDate
+        });
+    };
+
+    getReleaseDateDB = () => {
+        fetch("/api/getReleaseDate")
+        .then(data => data.json())
+        .then(res => this.setState({ releaseDate: res.releaseDate }));
+    };
+
+    updateReleaseDateDB = (newReleaseDate) => {
+        axios.post("/api/updateReleaseDate", {
+            newReleaseDate
+        });
+      };
+
     getCurrentDateTime = () => {
         return moment().format(RELEASE_DATE_FORMAT);
     }
@@ -321,9 +340,9 @@ class TimelockBody extends Component {
     handleReleaseDateSubmit = (e) => {
         e.preventDefault();
         if(isReleaseDateValid(this.state.timelockReleaseDate)){
-            this.setState({enteringReleaseDate: false})
+            setReleaseDateDB(this.state.timelockReleaseDate)
         }else{
-            console.log(`releaseDate: ${this.state.timelockReleaseDate}`)
+            console.log(`releaseDate not valid: ${this.state.timelockReleaseDate}`)
         }
     }
 
