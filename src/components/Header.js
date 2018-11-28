@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Navbar, Nav, NavItem} from 'react-bootstrap';
+import { LinkContainer } from "react-router-bootstrap";
 let regeneratorRuntime =  require("regenerator-runtime");
 
 class Header extends Component {
@@ -13,11 +14,22 @@ class Header extends Component {
   }
 
   render() {
-    return ( 
+    return (
     
       <Navbar inverse collapseOnSelect>
         <Navbar.Toggle right="true" onClick={this.toggle} />
         <Navbar.Brand href="#brand">IXO Pre-sale Time Lock</Navbar.Brand>
+        <Nav>
+            <LinkContainer to="/createToken">
+                <NavItem>CreateToken</NavItem>
+            </LinkContainer>
+        </Nav>
+        <Nav>
+            <LinkContainer to="/timelock">
+                <NavItem>Timelock</NavItem>
+            </LinkContainer>
+        </Nav>
+
       </Navbar>
     );
   }

@@ -179,8 +179,14 @@ class Web3Proxy {
 		});
 	};
 
+    loadIxoTokenContract = (address) => {
+        this._erc20ContractAddress = address
+        this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
+    }
+
     createIxoTokenContract = () => {
         const ixoTokenContract = this._erc20Contract;
+        var setIxoTockenAddress = (address) => {this._erc20ContractAddress = address} 
         return new Promise((resolve, reject) => {
 
             ixoTokenContract.deploy({
@@ -198,6 +204,7 @@ class Web3Proxy {
                 console.log(hash);
             })
             .on('receipt', receipt => {
+                setIxoTockenAddress(receipt.contractAddress)
                 resolve(receipt.contractAddress) // contains the new contract address
             })
 		});

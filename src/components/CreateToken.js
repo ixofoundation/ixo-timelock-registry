@@ -20,7 +20,7 @@ import {
 
 let regeneratorRuntime =  require("regenerator-runtime");
 
-class TimelockBody extends Component {
+class CreatToken extends Component {
  
   constructor(props) {
     super(props);
@@ -436,4 +436,4 @@ class TimelockBody extends Component {
   }
 }
 
-export default TimelockBody;
+export default CreatToken;

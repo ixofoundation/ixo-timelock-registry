@@ -7,7 +7,6 @@ import PropTypes from "prop-types";
 
 
 const CreateMinter = ({ minterAddress, handleMinterAddressChange, handleCreateMinter }) => (
-
         <div>
             <ControlLabel>New Minter</ControlLabel>
             <FormControl

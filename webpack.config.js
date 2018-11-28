@@ -43,11 +43,14 @@ const webpack = require('webpack'); // remember to require this, because we Defi
           limit: '10000',
           mimetype: 'application/svg+xml'
         }
-      }
+      },
+      {
+        test: /\.svg$/,
+        loader: 'svg-inline-loader'
+    }
     ]
   },
   plugins: [
-    // new webpack.DefinePlugin(envKeys),
     new webpack.EnvironmentPlugin(),
     new CopyWebpackPlugin([
         { from: './public', to: 'public', force: true }

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import {Row, Col, Grid} from 'react-bootstrap';
-
+import { Switch, Route } from 'react-router-dom'
 import '../App.css';
-import Header from './Header';
 import TimelockBody from './TimelockBody';
+import CreateToken from './CreateToken';
+
 
 
 let regeneratorRuntime =  require("regenerator-runtime");
@@ -13,18 +13,11 @@ class IxoTimelockApp extends Component {
 
     render() {
         return (
-            <Grid>
-                <Row>
-                    <Col>
-                    <Header  />
-                    </Col>
-                </Row>
-                <Row>
-                <Col>
-                    <TimelockBody />
-                </Col>
-                </Row>
-            </Grid>
+            <Switch>
+                {/* <Route exact path='/' component={Home}/> */}
+                <Route path='/createToken' component={CreateToken}/>
+                <Route path='/timelock' component={TimelockBody}/>
+            </Switch>
         );
     }
 }

@@ -31,11 +31,11 @@ const InstallMetaMask = () => (
       <TipRow>
           Download
       </TipRow>
-      {/* <TipRow>
+      {<TipRow>
         <MetaMaskImage>
-          <img src={require('../../images/metamask-horizontal.svg')} alt="MetaMask" />
+          <img src={require('../../../images/metamask-horizontal.svg')} alt="MetaMask" />
         </MetaMaskImage>
-      </TipRow> */}
+      </TipRow>}
     </TipStrip>
   </a>
 );
