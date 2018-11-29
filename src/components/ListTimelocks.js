@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import {
-    Table, ControlLabel, Form, Button, Grid, Row, Col  } from 'react-bootstrap';
+    Alert, Table, ControlLabel, Form, Button, Grid, Row, Col  } from 'react-bootstrap';
 import {RELEASE_DATE_FORMAT} from '../config';
 import moment from 'moment';
 let regeneratorRuntime =  require("regenerator-runtime");
@@ -10,33 +10,53 @@ import FileSaver from 'file-saver';
 class ListTimelocks extends Component {
  
     state = {
+        getIntermediaryBalance: this.props.getIntermediaryBalance,
+        intermediaryBalance: null,
+        isIntermediary : this.props.isIntermediary,
         beneficiaries : this.props.beneficiaries,
         releaseDate : this.props.releaseDate, 
         onTimelock : this.props.onTimelock, 
         onTransfer : this.props.onTransfer, 
         onQuery : this.props.onQuery, 
-        onRelease : this.props.onRelease, 
+        onRelease : this.props.onRelease,
+        hasTransfered : this.props.hasTransfered,
         onBeneficiaryFileLoad : this.props.onBeneficiaryFileLoad,
         beneficiariesFile : '',
         pendingTimeLocks: [],
         pendingTransfers: []
       }
     
+      componentDidMount(){
+        this.setState({loading: true})
+            this.state.getIntermediaryBalance().then((balance) => {
+            this.setState({loading: false, intermediaryBalance: balance})  
+        })
+      }
 
     componentWillReceiveProps(nextProps){
         if(nextProps.beneficiaries !== this.props.beneficiaries){
             this.setState({beneficiaries:nextProps.beneficiaries});
             this.removePendingTimelock()
-
         }
     }
     render(){
-        return <Grid>
+        
+        console.log(`this.state.intermediaryBalance ${this.state.intermediaryBalance}`)
+        
+        return <div>
+            {(!this.state.loading && this.state.intermediaryBalance === 0) && (<Row><Alert color="error"> This account does not have IXO Tokens</Alert></Row>)}
+            
+            {(!this.state.loadsding && this.state.intermediaryBalance > 0) && (<Row><Alert color="error"> This account has {this.state.intermediaryBalance} IXO Tokens</Alert></Row>)}
+    
+        <Grid>
             <Row>
                 <h3>Timelock List with Release Date of {this.state.releaseDate}</h3>
             </Row>
             <Row>
-                <Col xs={6} md={4}>
+                <Col>
+                    <ControlLabel>Load csv Beneficiaries file</ControlLabel>
+                </Col>
+                <Col>
                     <Form inline>
                         <input type="file" name="file" id="file" className="inputfile" onChange={(e) => {
                             this.state.onBeneficiaryFileLoad(e)
@@ -46,15 +66,21 @@ class ListTimelocks extends Component {
 
                     </Form>
                 </Col>
-                <Col xs={12} md={8}>
-                    <ControlLabel>Load csv Beneficiaries file</ControlLabel>
-                </Col>
+                
             </Row>
+            {this.renderChosenFile()}
             <Row>
                 {this.renderTable(this.state.beneficiaries, this.state.releaseDate, this.state.onTimelock, this.state.onTransfer, this.state.onQuery, this.state.onRelease)}
                 <Button onClick={(e) => this.saveBeneficiariesFile()}>Save</Button>
             </Row>
         </Grid>
+        </div>
+    }
+
+    renderChosenFile = () => {
+        if (this.state.beneficiariesFile) {
+            return <Row><Col>File: {this.state.beneficiariesFile.name}</Col></Row>
+        }
     }
 
     renderTable = (beneficiaries, releaseDate, onTimelock, onTransfer, onRelease) => {
@@ -88,7 +114,7 @@ class ListTimelocks extends Component {
                                                 <td>{beneficiary.amount}</td>
                                                 {this.renderTimelockButton(beneficiary.timelockAddress, beneficiary.address, theMomentOfRelease.unix(), onTimelock)}
                                                 {this.renderTransferButton(beneficiary.address, beneficiary.timelockAddress, beneficiary.hasTransfered, beneficiary.amount, beneficiary.txHash, onTransfer)}
-                                                {this.renderReleaseButton(beneficiary.timelockAddress, canRelease, onRelease)}
+                                                {this.renderReleaseButton(beneficiaryAddress,beneficiary.amount, beneficiary.timelockAddress, canRelease, onRelease)}
                                         </tr>);
                                     })
                                 }        
@@ -114,7 +140,7 @@ class ListTimelocks extends Component {
             }else{
                return <td><Button onClick={(e) => {
                     this.addPendingTransfer(timelockAddress)
-                    onTransfer(beneficiaryAddress, timelockAddress, amount, (timelockAddress) => {this.removePendingTransfer(timelockAddress)})
+                    onTransfer(beneficiaryAddress, timelockAddress, amount, this.removePendingTransfer)
                 }}>Transfer</Button></td>
             }
         }else{
@@ -138,13 +164,13 @@ class ListTimelocks extends Component {
     addPendingTimelock = (beneficiaryAddress) => {
         this.setState(prevState => ({
             pendingTimeLocks: [...prevState.pendingTimeLocks, beneficiaryAddress]
-          }))
+        }))
     }
 
     addPendingTransfer = (timelockAddress) => {
         this.setState(prevState => ({
             pendingTransfers: [...prevState.pendingTransfers, timelockAddress]
-          }))
+        }))
     }
 
 
@@ -159,17 +185,17 @@ class ListTimelocks extends Component {
         })
         this.setState({pendingTimeLocks: Object.entries(bCopy)});
     }
-    removePendingTransfer = (timelockAddress) => {
+    removePendingTransfer = (beneficiaryAddress, timelockAddress, amount) => {
         let bCopy = Object.assign({}, this.state.pendingTransfers);    //creating copy of object
 
-        if(this.hasTransfered(timelockAddress) && bCopy[timelockAddress]){
+        if(this.state.hasTransfered(beneficiaryAddress, amount, timelockAddress) && bCopy[timelockAddress]){
             delete bCopy[timelockAddress]
         }
         this.setState({pendingTransfers: Object.entries(bCopy)});
     }
 
-    renderReleaseButton = (timelockAddress, canRelease, onRelease) => {
-        if (canRelease && this.hasTransfered(amount, timelockAddress)){
+    renderReleaseButton = (beneficiaryAddress, amount, timelockAddress, canRelease, onRelease) => {
+        if (canRelease && this.state.hasTransfered(beneficiaryAddress, amount, timelockAddress)){
             return <td><Button onClick={(e) => onRelease(timelockAddress)}>Release</Button></td>
         }else{
             return <td><Button disabled>Release</Button></td>

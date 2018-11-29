@@ -20,7 +20,8 @@ const webpack = require('webpack'); // remember to require this, because we Defi
   ],
   output: {
     path: BUILD,
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    publicPath: '/'
   },
   // use babel
   module: {
@@ -49,6 +50,9 @@ const webpack = require('webpack'); // remember to require this, because we Defi
         loader: 'svg-inline-loader'
     }
     ]
+  },
+  devServer: {
+    historyApiFallback: true,
   },
   plugins: [
     new webpack.EnvironmentPlugin(),

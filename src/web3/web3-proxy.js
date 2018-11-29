@@ -80,6 +80,39 @@ class Web3Proxy {
 					reject(error);
 				});
 		});
+    };
+
+    getBalance = () => {
+
+		const contract = this._erc20Contract;
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.balanceOf(this.getSelectedAccount())
+				.call()
+				.then(result => {
+                    console.log(`getBalance balance : ${result}`)
+					resolve(result/100000000);
+				})
+				.catch(error => {
+					reject(error);
+				});
+		});
+    };
+    
+    getCurrentMinter = () => {
+
+		const contract = this._erc20Contract;
+		return new Promise((resolve, reject) => {
+			contract.methods
+				.minter()
+				.call()
+				.then(minter => {
+					resolve(minter);
+				})
+				.catch(error => {
+					reject(error);
+				});
+		});
 	};
 
 	getDefaultAccount = () => {

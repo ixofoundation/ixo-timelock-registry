@@ -20,8 +20,18 @@ class Header extends Component {
         <Navbar.Toggle right="true" onClick={this.toggle} />
         <Navbar.Brand href="#brand">IXO Pre-sale Time Lock</Navbar.Brand>
         <Nav>
-            <LinkContainer to="/createToken">
-                <NavItem>CreateToken</NavItem>
+            <LinkContainer to="/ixoTokenSetup">
+                <NavItem>Setup Ixo Token</NavItem>
+            </LinkContainer>
+        </Nav>
+        <Nav>
+            <LinkContainer to="/setMinter">
+                <NavItem>Set Minter</NavItem>
+            </LinkContainer>
+        </Nav>
+        <Nav>
+            <LinkContainer to="/mintIxoToken">
+                <NavItem>Mint</NavItem>
             </LinkContainer>
         </Nav>
         <Nav>

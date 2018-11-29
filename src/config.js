@@ -9,32 +9,14 @@ import moment from 'moment';
 var network = configJson.network;
 const ixoTokenOwner = configJson.ixoTokenOwner;
 const intemediaryAddress = configJson.intemediaryAddress;
-var minters = [configJson.minter]
+var minterAddress = configJson.minter
 
 var ixoTokenAddress = configJson.ixoTokenAddress
 var web3Fallback = configJson.web3Fallback;
 
-const isMinter = address => {
-    return minters.indexOf(address) >= 0
-}
-
-const addMinter = address => {
-    if(minters.indexOf(address) < 0){
-        minters.push(address);
-    }
-}
-///nned to get release date time
 var RELEASE_DATE_FORMAT = "DD-MM-YYYY HH:mm:ss";
 var releaseDateEnv = configJson.releaseDate;
-var configuredReleaseDate
 
-// const getReleaseDate = () => {
-//     if(!configuredReleaseDate){
-//         return isReleaseDateValid(configJson.releaseDate)?configJson.releaseDate:null
-//     }else{
-//         return configuredReleaseDate
-//     }
-// }
 const getReleaseDate = () => {
     return releaseDateEnv
 }
@@ -50,4 +32,4 @@ const isReleaseDateValid = dateTime => {
     return false
 }
 
-export {getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, isMinter, addMinter, minters};
+export {getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, minterAddress};

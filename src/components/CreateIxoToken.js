@@ -2,9 +2,9 @@
 import React, { Component } from 'react';
 
 import {
-    ControlLabel, FormControl, Button
+    ControlLabel, FormControl, Button, Alert
   } from 'react-bootstrap';
-import NewContractSpinner from './NewContractSpinner';
+import NewContractSpinner from './spinners/NewContractSpinner';
 
 class CreateIxoToken extends Component {
 
@@ -12,17 +12,23 @@ class CreateIxoToken extends Component {
         handleCreateIxoToken : this.props.handleCreateIxoToken,
         handleLoadIxoToken : this.props.handleLoadIxoToken,
         handleIxoTokenAddressChange: this.props.handleIxoTokenAddressChange,
-        pending: this.props.pendingNewIxoContract
+        pending: this.props.pendingNewIxoContract,
+        erc20ContractAddress: this.props.erc20ContractAddress
     }
 
     componentWillReceiveProps(nextProps){
         if(nextProps.pendingNewIxoContract !== this.props.pendingNewIxoContract){
             this.setState({pending:nextProps.pendingNewIxoContract});
         }
+        if(nextProps.erc20ContractAddress !== this.props.erc20ContractAddress){
+            this.setState({erc20ContractAddress:nextProps.erc20ContractAddress});
+        }
     }
     render(){
         return (
             <div>
+
+                <Alert color="info">IXO Token Currently loaded at address: {this.state.erc20ContractAddress}</Alert>
                 <ControlLabel>IXO Token Address</ControlLabel>
                 <FormControl
                     placeholder='Enter existing IXO Token Address' 
@@ -45,7 +51,7 @@ class CreateIxoToken extends Component {
         }
         renderNewButton = () => {
             if(this.state.pending){
-                return <Button disabled>Load IXO Token</Button>
+                return <Button disabled>New IXO Token</Button>
             }else{
                 return<Button onClick={(e) => {
                     e.preventDefault()

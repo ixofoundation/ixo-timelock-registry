@@ -22,7 +22,7 @@ class App extends Component {
         acceptedEnable: false
     }
     componentDidUpdate(prevprops) {
-        if (prevprops != this.props){
+        if (prevprops.web3Obj != this.props.web3Obj){
             this.setState({web3Obj: this.props.web3Obj})
         }
     }
@@ -46,7 +46,7 @@ class App extends Component {
             // Legacy dapp browsers...
             else if (window.web3) {
                 window.web3 = new Web3(web3.currentProvider);
-                this.setState({web3Obj: window.web3})
+                this.setState({web3Obj: window.web3, pendingEnable: false})
             }
             // Non-dapp browsers...
             else {
@@ -57,6 +57,7 @@ class App extends Component {
 
 
     render() {
+        
         if(this.state.pendingEnable) {
             return <Alert color="primary">Awaiting MetaMask enable, please check your MetaMask account ...</Alert>
         }else if(!this.state.acceptedEnable) {
