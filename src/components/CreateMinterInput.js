@@ -20,7 +20,9 @@ class CreateMinter extends Component {
 
     componentWillReceiveProps(nextProps){
         if(nextProps.pendingCreateMinter !== this.props.pendingCreateMinter){
-            this.setState({pending:nextProps.pendingCreateMinter});
+            this.state.handleGetCurrentMinter().then((minter) => {
+                this.setState({currentMinter: minter, pending:nextProps.pendingCreateMinter})
+            })
         }
         if(nextProps.isContractOwner !== this.props.isContractOwner){
             this.setState({isContractOwner:nextProps.isContractOwner});

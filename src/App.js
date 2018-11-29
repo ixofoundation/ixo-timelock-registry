@@ -18,6 +18,7 @@ class App extends Component {
 
     state = {
         web3Obj:null,
+        loading: true,
         pendingEnable: true,
         acceptedEnable: false
     }
@@ -36,21 +37,23 @@ class App extends Component {
                     this.setState({pendingEnable: true})
                     ethereum.enable().then((res) => {
                         console.log(`Connect Result : ${res}`)
-                        this.setState({web3Obj: window.web3, pendingEnable: false, acceptedEnable: true})
+                        this.setState({web3Obj: window.web3, pendingEnable: false, acceptedEnable: true, loading: false})
                     });
                 } catch (error) {
                     // User denied account access...
-                    this.setState({web3Obj: null, pendingEnable: false, acceptedEnable: false})                    
+                    this.setState({web3Obj: null, pendingEnable: false, acceptedEnable: false, loading: false})                    
                 }
             }
             // Legacy dapp browsers...
             else if (window.web3) {
                 window.web3 = new Web3(web3.currentProvider);
-                this.setState({web3Obj: window.web3, pendingEnable: false})
+                this.setState({web3Obj: window.web3, pendingEnable: false, loading: false})
             }
             // Non-dapp browsers...
             else {
                 console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+                this.setState({web3Obj: null, pendingEnable: false, loading: false})
+
             }
         });
     }
@@ -58,9 +61,9 @@ class App extends Component {
 
     render() {
         
-        if(this.state.pendingEnable) {
+        if(!this.setState.loading && this.state.pendingEnable) {
             return <Alert color="primary">Awaiting MetaMask enable, please check your MetaMask account ...</Alert>
-        }else if(!this.state.acceptedEnable) {
+        }else if(!this.setState.loading && !this.state.acceptedEnable) {
             return <Alert color="danger">MetaMask connect rejected!</Alert>
         }
          if(this.state.web3Obj) {

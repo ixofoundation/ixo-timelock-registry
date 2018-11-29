@@ -176,6 +176,8 @@ class IxoTimelockApp extends Component {
             console.log(`TX: ${txHash}`);
             if(this.state.minterAddress === this.state.web3Proxy.getSelectedAccount()){
                 this.setState({isContractMinter: true, pendingCreateMinter: false})
+            }else{
+                this.setState({pendingCreateMinter: false})
             }
             //addMinter(minter)
         })
