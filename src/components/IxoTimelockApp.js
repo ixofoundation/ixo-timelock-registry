@@ -139,10 +139,12 @@ class IxoTimelockApp extends Component {
     handleTokenMinting = event => {
 		if (this.state.mintingTransactionBeneficiaryAccount && this.state.mintingTransactionQuantity > 0) {
             var bn = this.state.mintingTransactionQuantity;
+            console.log(`minting: ${bn} to ${this.state.mintingTransactionBeneficiaryAccount}`);
+
             this.setState({pendingMint: true})
 			this.state.web3Proxy
             .mintTo(this.state.mintingTransactionBeneficiaryAccount, bn)
-            .then(txHash => {
+            .then(receipt => {
                 this.setState({pendingMint: false});
             })
             .catch(error => {

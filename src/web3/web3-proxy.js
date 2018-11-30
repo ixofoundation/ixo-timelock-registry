@@ -194,13 +194,17 @@ class Web3Proxy {
                     gasPrice: '20000000000'
 				})
 				.on('transactionHash', hash => {
-					resolve(hash);
+					console.log(`minting hash ${hash}`); // contains the new contract address
+                    
 				})
 				.on('error', error => {
+                    console.log(error);
 					reject(error);
 				})
 				.on('receipt', receipt => {
-					console.log(receipt.contractAddress); // contains the new contract address
+                    console.log(`mint receipt ${receipt}`); // contains the new contract address
+                    resolve(receipt);
+                    
 				});
 		});
 	};
