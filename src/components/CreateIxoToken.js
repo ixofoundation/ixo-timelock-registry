@@ -27,8 +27,9 @@ class CreateIxoToken extends Component {
     render(){
         return (
             <div>
-
-                <Alert color="info">IXO Token Currently loaded at address: {this.state.erc20ContractAddress}</Alert>
+                {(this.state.erc20ContractAddress) && (
+                    <Alert color="info">IXO Token Currently loaded at address: {this.state.erc20ContractAddress}</Alert>
+                )}
                 <ControlLabel>IXO Token Address</ControlLabel>
                 <FormControl
                     placeholder='Enter existing IXO Token Address' 

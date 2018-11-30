@@ -1,13 +1,11 @@
 import Web3 from 'web3';
-import networks from './networks';
 
 class Web3Proxy {
 	constructor(
 		erc20ContractAbiJson,
         erc20ContractAddress,
         timelockTokenAbi,        
-		selectionChangeHandler,
-		defaultNetwork = networks.ROPSTEN_NETWORK
+		selectionChangeHandler
 	) {
 		this._selectedAccount = '';
 		this._erc20ContractAbiJson = erc20ContractAbiJson.abi;
@@ -17,7 +15,6 @@ class Web3Proxy {
         this._ixoTokenData = erc20ContractAbiJson.bytecode;
 
 		this._selectionChangeHandler = selectionChangeHandler;
-		this._defaultNetwork = defaultNetwork;
 
 		const {
 			web3
@@ -127,20 +124,6 @@ class Web3Proxy {
 		return this._web3.eth.net.getNetworkType();
 	};
 
-	getDefaultNetwork = () => {
-		return this._defaultNetwork;
-	};
-
-	setDefaultNetwork = defaultNetwork => {
-		this._defaultNetwork = defaultNetwork;
-	};
-
-	isDesiredNetwork = () => {
-		const defaultNetwork = this._defaultNetwork;
-		return this._web3.eth.net.getNetworkType().then(network => {
-			return new Promise(resolve => resolve(defaultNetwork === network));
-		});
-	};
 
 	transferTo = (beneficiaryAddress, amount) => {
 		const contract = this._erc20Contract;
@@ -218,6 +201,18 @@ class Web3Proxy {
     loadIxoTokenContract = (address) => {
         this._erc20ContractAddress = address
         this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
+    }
+    getOwner = () => {
+        return new Promise((resolve, reject) => {
+
+            this._erc20Contract.methods.getOwner().call().then(owner => {
+                resolve(owner);
+            })
+            .catch(error => {
+                reject(error);
+            });
+		});
+
     }
 
     createIxoTokenContract = () => {

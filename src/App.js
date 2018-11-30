@@ -17,6 +17,7 @@ let regeneratorRuntime =  require("regenerator-runtime");
 class App extends Component {
 
     state = {
+        network:null,
         web3Obj:null,
         loading: true,
         pendingEnable: true,
@@ -58,6 +59,9 @@ class App extends Component {
         });
     }
 
+    setHeaderNetwork = (network) => {
+        this.setState({network})
+    }
 
     render() {
         
@@ -70,12 +74,12 @@ class App extends Component {
             return (<Grid>
                         <Row>
                             <Col>
-                                <Header  />
+                                <Header  network={this.state.network}/>
                             </Col>
                         </Row>
                         <Row>
                             <Col>
-                                <IxoTimelockApp />
+                                <IxoTimelockApp setHeaderNetwork={this.setHeaderNetwork}/>
                             </Col>
                         </Row>
                     </Grid>)

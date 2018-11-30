@@ -14,7 +14,6 @@ class MintIxo extends Component {
         handleBeneficiaryAddressChange: this.props.handleBeneficiaryAddressChange, 
         handleTokenMinting:this.props.handleTokenMinting,
         isContractMinter:this.props.isContractMinter, 
-        isIntermediary:this.props.isIntermediary,
         pending:this.props.pending
     }
 
@@ -44,8 +43,8 @@ class MintIxo extends Component {
 
             </div>
         )} 
-        { (this.state.isIntermediary) && (
-            <Alert color="warning">If you are wanting to Allocate Timelocks please select the link</Alert>
+        { (!this.state.isContractMinter) && (
+            <Alert color="warning">Not the Contract minter</Alert>
         )} 
         </div>
     )}

@@ -15,9 +15,9 @@
   "author": "Phillip Gibb",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ixofoundation/ixo-timelock-registry/issues"
+    "url": "https://github.com/phillipgibb/sovrin_tools/issues"
   },
-  "homepage": "https://github.com/ixofoundation/ixo-timelock-registry#readme",
+  "homepage": "https://github.com/phillipgibb/sovrin_tools#readme",
   "dependencies": {
     "app-root-path": "^2.1.0",
     "bootstrap": "^4.1.3",

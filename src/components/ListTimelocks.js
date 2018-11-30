@@ -12,7 +12,6 @@ class ListTimelocks extends Component {
     state = {
         getIntermediaryBalance: this.props.getIntermediaryBalance,
         intermediaryBalance: null,
-        isIntermediary : this.props.isIntermediary,
         beneficiaries : this.props.beneficiaries,
         releaseDate : this.props.releaseDate, 
         onTimelock : this.props.onTimelock, 

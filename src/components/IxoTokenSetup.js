@@ -1,8 +1,5 @@
 
 import React, { Component } from 'react';
-import {ixoTokenAddress, minterAddress} from '../config';
-import MintInput from './MintIxo';
-import CreateMinterInput from './CreateMinterInput';
 import CreateIxoToken from './CreateIxoToken';
 import {
     Button, Alert
@@ -15,20 +12,17 @@ class IxoTokenSetup extends Component {
   constructor(props) {
     super(props);
     var localIxoTokenStorage = localStorage.getItem('erc20ContractAddress');
-    console.log(`IxoTokenSetup erc20ContractAddress : ${localIxoTokenStorage}`)
     this.state = {
         loading: true,
-        correctNetwork: true,
         isContractOwner: this.props.isContractOwner,
         isContractMinter: this.props.isContractMinter,
-        isIntermediary: this.props.isIntermediary,
-        minterAddress: minterAddress,
+        minterAddress: '',
         pendingNewIxoContract: false,
 
         mintingTransactionQuantity: 0,
         mintingTransactionBeneficiaryAccount: '',
         web3Proxy: this.props.web3Proxy,
-        erc20ContractAddress: localIxoTokenStorage?localIxoTokenStorage:ixoTokenAddress,
+        erc20ContractAddress: localIxoTokenStorage?localIxoTokenStorage:null,
         newIxoToken: false,
         loadingIxoToken: false,
         timelockReleaseDate: ''
@@ -70,8 +64,16 @@ componentWillReceiveProps(nextProps){
         this.state.web3Proxy
         .loadIxoTokenContract(this.state.erc20ContractAddress)
         console.log(`IXO ERC20 Token Address: ${this.state.erc20ContractAddress}`);
-        this.setState({loadingIxoToken: false });
-        localStorage.setItem('erc20ContractAddress', this.state.erc20ContractAddress);
+
+        this.state.web3Proxy
+        .getOwner().then((owner) => {
+            this.setState({loadingIxoToken: false });
+            localStorage.setItem('erc20ContractAddress', this.state.erc20ContractAddress);
+            localStorage.setItem('erc20ContractOwnerAddress', owner);
+    
+        })
+
+        
     }
 
     handleCreateIxoToken = () => {
@@ -80,7 +82,10 @@ componentWillReceiveProps(nextProps){
         .createIxoTokenContract()
         .then(ixoTokenAddress => {
             this.setState({ erc20ContractAddress: ixoTokenAddress, newIxoToken: true, pendingNewIxoContract: false});
-            localStorage.setItem('erc20ContractAddress', this.state.erc20ContractAddress);
+        console.log(`NEW IXO ERC20 Token Address: ${this.state.erc20ContractAddress}`);
+        localStorage.setItem('erc20ContractOwnerAddress', this.state.web3Proxy.getSelectedAccount());
+        localStorage.removeItem('erc20ContractMinterAddress');
+        localStorage.setItem('erc20ContractAddress', this.state.erc20ContractAddress);
         })
         .catch(error => {
             console.log(`error: ${error}`);
@@ -96,7 +101,7 @@ componentWillReceiveProps(nextProps){
     return ( 
       <div>
        
-         { (this.state.isContractOwner) && (<CreateIxoToken 
+         { (!this.state.newIxoToken) && (<CreateIxoToken 
              handleCreateIxoToken={this.handleCreateIxoToken}
              handleLoadIxoToken={this.handleLoadIxoToken}
              handleIxoTokenAddressChange={this.handleIxoTokenAddressChange}
@@ -104,7 +109,8 @@ componentWillReceiveProps(nextProps){
              erc20ContractAddress={this.state.erc20ContractAddress}
         />
         )}
-        {(this.state.isContractOwner && this.state.newIxoToken && this.state.erc20ContractAddress) && (
+
+        {(this.state.newIxoToken && this.state.erc20ContractAddress) && (
             <div>
                 <Alert color="success">
                 <div><span fontWeight="bold" >New IXO Token Address: {this.state.erc20ContractAddress}</span></div>
@@ -113,10 +119,7 @@ componentWillReceiveProps(nextProps){
                 <Button onClick={() => {this.setState({newIxoToken: false})}}>Done</Button>
             </div>
         )}
-        
-        { (this.state.isIntermediary) && (
-            <Alert color="warning">If you are wanting to Allocate Timelocks please select the link</Alert>
-        )} 
+ 
       </div>
     );
   }

@@ -14,17 +14,12 @@ let regeneratorRuntime =  require("regenerator-runtime");
 class TimelockBody extends Component {
  
     state = {
-        isIntermediary: this.props.isIntermediary,
         web3Proxy: this.props.web3Proxy,        
         beneficiaries: {},
         timelockReleaseDate: getReleaseDate()
     };
     
-    componentWillReceiveProps(nextProps){
-        if(nextProps.isIntermediary !== this.props.isIntermediary){
-            this.setState({isIntermediary:nextProps.isIntermediary});
-        }
-    }
+
 
     getBalance = async (account) => {
 
@@ -204,7 +199,7 @@ class TimelockBody extends Component {
         <div>
             {(!this.state.web3Proxy._erc20ContractAddress) && (<Alert color="warning">Contract has not been loaded</Alert>)}
 
-            { (this.state.web3Proxy._erc20ContractAddress && this.state.isIntermediary) && (<ListTimelocks 
+            { (this.state.web3Proxy._erc20ContractAddress && (!this.state.isContractOwner && !this.state.isContractMinter)) && (<ListTimelocks 
                 beneficiaries = {this.state.beneficiaries}
                 getIntermediaryBalance = {this.getSelectedAccountBalance}
                 releaseDate={this.state.timelockReleaseDate}
@@ -215,8 +210,8 @@ class TimelockBody extends Component {
                 onBeneficiaryFileLoad={this.handleBeneficiaryFileLoad}
                 /> 
             )}
-            {(!this.state.isIntermediary)
-                && (<Alert color="warning">If you are wanting to Allocate Timelocks please select the correct account</Alert>)
+            {(this.state.isContractOwner || this.state.isContractMinter)
+                && (<Alert color="warning">Cannot be the owner or Minter</Alert>)
             }
         </div>
 

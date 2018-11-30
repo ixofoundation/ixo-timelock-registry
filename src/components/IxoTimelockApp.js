@@ -6,9 +6,8 @@ import IxoTokenSetup from './IxoTokenSetup';
 import MintIxo from './MintIxo';
 import CreateMinter from './CreateMinterInput';
 
-import {ixoTokenAbi, ixoTokenAddress} from '../config';
+import {ixoTokenAbi} from '../config';
 import {timelockTokenAbi} from '../config';
-import {network, ixoTokenOwner,minterAddress,intemediaryAddress} from '../config';
 import {RELEASE_DATE_FORMAT, getReleaseDate} from '../config';
 import Web3Proxy from '../web3/web3-proxy';
 let regeneratorRuntime =  require("regenerator-runtime");
@@ -22,69 +21,53 @@ class IxoTimelockApp extends Component {
     constructor(props) {
         super(props);
         var localIxoTokenStorage = localStorage.getItem('erc20ContractAddress');
+        var localIxoTokenCreatorStorage = localStorage.getItem('erc20ContractOwnerAddress');
+        var localIxoTokenMinterStorage = localStorage.getItem('erc20ContractMinterAddress');
+
         console.log(`erc20ContractAddress : ${localIxoTokenStorage}`)
         this.state = {
             loading: true,
-            correctNetwork: true,
             isContractOwner: false,
-            isContractMinter: false,
-            isIntermediary: false,
+            isContractMinter:false,
             mintingTransactionQuantity: 0,
             mintingTransactionBeneficiaryAccount: '',
             pendingMint: false,
-            minterAddress: minterAddress,
-            pendingMint: false,
+            minterAddress: localIxoTokenMinterStorage,
             pendingCreateMinter: false,
+            erc20ContractAddress: localIxoTokenStorage,
+            contractOwnerAddress: localIxoTokenCreatorStorage,
+            setHeaderNetwork: this.props.setHeaderNetwork,
             web3Proxy: new Web3Proxy(
                 ixoTokenAbi,
-                localIxoTokenStorage?localIxoTokenStorage:ixoTokenAddress,
+                localIxoTokenStorage?localIxoTokenStorage:null,
                 timelockTokenAbi,
-                this.handleSelectionChange,
-                network
+                this.handleSelectionChange
             ),
         };
     }
 
     componentWillMount() {
-
-        this.state.web3Proxy.isDesiredNetwork().then((correct) => {
-            if(correct){
-                this.initialize();
-            }else if(this.state.web3Proxy.getSelectedAccount()){
-                this.setState({correctNetwork: false});
-            }
-        })
+        this.initialize();
     }
 
     handleSelectionChange = () => {
-
-        this.state.web3Proxy.isDesiredNetwork().then((correct) => {
-            if(correct){
-                this.initialize();
-            }else{
-                this.setState({correctNetwork: false, loading: false});
-            }
-
-        })
+        this.initialize();
     };
 
     initialize = () => {
         
         this.state.web3Proxy.getNetwork().then(network => {
-            const isContractOwner = this.state.web3Proxy.getSelectedAccount() === ixoTokenOwner;
-            const isContractMinter = this.state.web3Proxy.getSelectedAccount() === minterAddress; 
-            const isIntermediary = this.state.web3Proxy.getSelectedAccount() === intemediaryAddress; 
-
+            const isContractOwner = this.state.web3Proxy.getSelectedAccount() === this.state.contractOwnerAddress;
+            const isContractMinter = this.state.web3Proxy.getSelectedAccount() === this.state.minterAddress;
+            this.state.setHeaderNetwork(network)
             this.setState({ 
                 isContractOwner,
-                isContractMinter, 
-                isIntermediary,
+                isContractMinter,
                 loading: false,
                 mintingTransactionQuantity: 0,
                 mintingTransactionBeneficiaryAccount: '',
                 pendingMint: false,
-                timelockReleaseDate: getReleaseDate(),
-                correctNetwork: true
+                timelockReleaseDate: getReleaseDate()
             });                
         });
     };
@@ -174,6 +157,8 @@ class IxoTimelockApp extends Component {
         .setMinter(this.state.minterAddress)
         .then(txHash => {
             console.log(`TX: ${txHash}`);
+            localStorage.setItem('erc20ContractMinterAddress', this.state.minterAddress);
+
             if(this.state.minterAddress === this.state.web3Proxy.getSelectedAccount()){
                 this.setState({isContractMinter: true, pendingCreateMinter: false})
             }else{
@@ -205,9 +190,7 @@ class IxoTimelockApp extends Component {
         if(!this.state.loading && !this.state.web3Proxy.getSelectedAccount()){
             return <Alert color="danger">Please unlock your Metamask</Alert>
         }
-        if(!this.state.loading && !this.state.correctNetwork){
-            return <Alert color="danger">Please change to the {this.state.web3Proxy.getDefaultNetwork()} network</Alert>
-        }
+
 
         return (
             <Switch>
@@ -215,12 +198,9 @@ class IxoTimelockApp extends Component {
                 <Route path='/ixoTokenSetup' render={(props) => <IxoTokenSetup {...props} 
                     web3Proxy={this.state.web3Proxy} 
                     isContractOwner={this.state.isContractOwner} 
-                    isContractMinter={this.state.isContractMinter} 
-                    isIntermediary={this.state.isIntermediary}
                 />}/>
                 <Route path='/setMinter' render={(props) => <CreateMinter {...props} 
-                    isContractOwner={this.state.isContractOwner}
-                    isIntermediary={this.state.isIntermediary}
+                    isContractOwner={this.state.web3Proxy.getSelectedAccount() === localStorage.getItem('erc20ContractOwnerAddress')}
                     handleMinterAddressChange={this.handleMinterTransactionAddressChange}
                     handleCreateMinter={this.handleCreateMinter}
                     pendingCreateMinter={this.state.pendingCreateMinter}
@@ -230,15 +210,15 @@ class IxoTimelockApp extends Component {
                     handleQuantityChange={this.handleMintingTransactionQuantityChange}
                     handleBeneficiaryAddressChange={this.handleMintingTransactionBeneficiaryAddressChange}
                     handleTokenMinting={this.handleTokenMinting}
-                    isContractMinter={this.state.isContractMinter} 
-                    isIntermediary={this.state.isIntermediary}
+                    isContractMinter={this.state.web3Proxy.getSelectedAccount() === localStorage.getItem('erc20ContractMinterAddress')}
+
                     pending={this.state.pendingMint}
                     />}/>
                 <Route path='/timelock'  render={(props) => <TimelockBody {...props} 
                     web3Proxy={this.state.web3Proxy} 
-                    isContractOwner={this.state.isContractOwner} 
-                    isContractMinter={this.state.isContractMinter} 
-                    isIntermediary={this.state.isIntermediary}
+                    isContractOwner={this.state.web3Proxy.getSelectedAccount() === localStorage.getItem('erc20ContractOwnerAddress')}
+                    isContractOwner={this.state.web3Proxy.getSelectedAccount() === localStorage.getItem('erc20ContractOwnerAddress')}
+
                 />}/>
             </Switch>
             

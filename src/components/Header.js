@@ -8,11 +8,16 @@ class Header extends Component {
   constructor (props) {
     super(props);
      this.state = {
-        mintixo: this.props.onClickMintIxoSelect,
-        managetimelocks: this.props.onClickManageTimelocksSelect
+        network: this.props.network
      };
   }
 
+  componentWillReceiveProps(nextProps){
+    if(nextProps.network !== this.props.network){
+        this.setState({network:nextProps.network})
+    }
+
+}
   render() {
     return (
     
@@ -39,7 +44,7 @@ class Header extends Component {
                 <NavItem>Timelock</NavItem>
             </LinkContainer>
         </Nav>
-
+        <Navbar.Brand href="#brand">Network: {this.state.network}</Navbar.Brand>
       </Navbar>
     );
   }

@@ -10,7 +10,6 @@ class CreateMinter extends Component {
 
     state = {
         isContractOwner: this.props.isContractOwner,
-        isIntermediary: this.props.isIntermediary,
         currentMinter : this.props.minterAddress,
         handleMinterAddressChange : this.props.handleMinterAddressChange,
         handleCreateMinter: this.props.handleCreateMinter,
@@ -27,9 +26,7 @@ class CreateMinter extends Component {
         if(nextProps.isContractOwner !== this.props.isContractOwner){
             this.setState({isContractOwner:nextProps.isContractOwner});
         }
-        if(nextProps.isIntermediary !== this.props.isIntermediary){
-            this.setState({isIntermediary:nextProps.isIntermediary});
-        }
+
 
     }
 
@@ -56,9 +53,9 @@ class CreateMinter extends Component {
                     <SetMinterSpinner isSpinning={this.state.pending}/>
                 </div>
             )}
-            { (this.state.isIntermediary) && (
+            { (!this.state.isContractOwner) && (
                 <div>
-                    <Alert color="warning">If you are wanting to Allocate Timelocks please select the link</Alert>
+                    <Alert color="warning">Not the Contract Owner</Alert>
                 </div>
             )}
         </div>

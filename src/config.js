@@ -1,27 +1,17 @@
 
-var configJson = require('./configRopsten')
 
 import ixoTokenAbi from '../build/contracts/IxoERC20Token.json'
 import timelockTokenAbi from '../build/contracts/TokenTimelock.json'
 
 import moment from 'moment';
 
-var network = configJson.network;
-const ixoTokenOwner = configJson.ixoTokenOwner;
-const intemediaryAddress = configJson.intemediaryAddress;
-var minterAddress = configJson.minter
-
-var ixoTokenAddress = configJson.ixoTokenAddress
-var web3Fallback = configJson.web3Fallback;
 
 var RELEASE_DATE_FORMAT = "DD-MM-YYYY HH:mm:ss";
-var releaseDateEnv = configJson.releaseDate;
-
+var releaseDateEnv = "12-03-2019 23:59:59";
 const getReleaseDate = () => {
     return releaseDateEnv
 }
 console.log(`releaseDateEnv: ${releaseDateEnv}`)
-console.log(`ixoTokenAddress: ${ixoTokenAddress}`)
 
 const isReleaseDateValid = dateTime => {
     if(!dateTime) return false
@@ -32,4 +22,4 @@ const isReleaseDateValid = dateTime => {
     return false
 }
 
-export {getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, network, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi, ixoTokenOwner, intemediaryAddress, minterAddress};
+export {getReleaseDate, isReleaseDateValid, RELEASE_DATE_FORMAT, web3Fallback, ixoTokenAbi, ixoTokenAddress, benieficiaries, timelockTokenAbi};
