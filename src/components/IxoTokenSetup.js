@@ -46,7 +46,7 @@ componentWillReceiveProps(nextProps){
 		if (this.state.mintingTransactionBeneficiaryAccount && this.state.mintingTransactionQuantity > 0) {
             this.setState({pendingMint: true})
 			this.state.web3Proxy
-            .mintTo(this.state.mintingTransactionBeneficiaryAccount, this.state.mintingTransactionQuantity * 100000000)
+            .mintTo(this.state.mintingTransactionBeneficiaryAccount, this.state.mintingTransactionQuantity)
             .then(txHash => {
                 this.setState({ mintingTransactionBeneficiaryAccount: '', mintingTransactionQuantity: 0, pendingMint: false});
             })

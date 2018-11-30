@@ -10,7 +10,7 @@
     "build_client": "webpack --mode development",
     "clean": "rm -rf build && mkdir build",
     "build_client_watch": "webpack --watch",
-    "build": "webpack --mode production"
+    "build": "webpack --mode development"
   },
   "author": "Phillip Gibb",
   "license": "ISC",
