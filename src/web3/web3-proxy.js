@@ -211,7 +211,6 @@ class Web3Proxy {
     }
     getOwner = () => {
         return new Promise((resolve, reject) => {
-            debugger;
             this._erc20Contract.methods.owner().call().then(owner => {
                 resolve(owner);
             })
