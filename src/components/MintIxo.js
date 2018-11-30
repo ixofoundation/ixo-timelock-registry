@@ -32,9 +32,7 @@ class MintIxo extends Component {
             <div>
                 <ControlLabel>Number or IXO to Mint</ControlLabel>
                 <FormControl
-                    type={"number"} 
-                    onChange={this.state.handleQuantityChange} 
-                    step={10000} min={0} />
+                    onChange={this.state.handleQuantityChange} />
                 <ControlLabel>to recepient</ControlLabel>
                 <FormControl
                     onChange={this.state.handleBeneficiaryAddressChange} />

@@ -138,14 +138,17 @@ class IxoTimelockApp extends Component {
 
     handleTokenMinting = event => {
 		if (this.state.mintingTransactionBeneficiaryAccount && this.state.mintingTransactionQuantity > 0) {
+            var bn = this.state.mintingTransactionQuantity;
             this.setState({pendingMint: true})
 			this.state.web3Proxy
-            .mintTo(this.state.mintingTransactionBeneficiaryAccount, this.state.mintingTransactionQuantity * 100000000)
+            .mintTo(this.state.mintingTransactionBeneficiaryAccount, bn)
             .then(txHash => {
-                this.setState({ mintingTransactionBeneficiaryAccount: '', mintingTransactionQuantity: 0, pendingMint: false});
+                this.setState({pendingMint: false});
             })
             .catch(error => {
                 console.log(`error: ${error}`);
+                this.setState({ pendingMint: false});
+
             });
 		}
     };
@@ -195,7 +198,7 @@ class IxoTimelockApp extends Component {
         return (
             <Switch>
                 {/* <Route exact path='/' component={Home}/> */}
-                <Route path='/ixoTokenSetup' render={(props) => <IxoTokenSetup {...props} 
+                <Route exact={true} path='/ixoTokenSetup' render={(props) => <IxoTokenSetup {...props} 
                     web3Proxy={this.state.web3Proxy} 
                     isContractOwner={this.state.isContractOwner} 
                 />}/>

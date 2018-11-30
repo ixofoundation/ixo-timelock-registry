@@ -32,7 +32,7 @@ class TimelockBody extends Component {
     };
 
     getSelectedAccountBalance =  () => {
-        return this.state.web3Proxy.getBalance();
+        return this.state.web3Proxy.getSelectedAccountBalance();
     };
     
 
@@ -100,6 +100,7 @@ class TimelockBody extends Component {
     }
 
     handleTransfer = (beneficiaryAddress, timelockAddress, amount, handleTransferComplete) => {
+
         this.state.web3Proxy
         .transferTo(timelockAddress, amount)
         .then(txHash => {

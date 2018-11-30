@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-
+import {BigNumber} from 'bignumber.js';
 class Web3Proxy {
 	constructor(
 		erc20ContractAbiJson,
@@ -27,6 +27,7 @@ class Web3Proxy {
 
 	initWithCurrentProvider = provider => {
         this._web3 = new Web3(provider);
+        this.BN = this._web3.utils.BN;
         if(this._erc20ContractAddress){
             this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
         }else{
@@ -79,7 +80,7 @@ class Web3Proxy {
 		});
     };
 
-    getBalance = () => {
+    getSelectedAccountBalance = () => {
 
 		const contract = this._erc20Contract;
 		return new Promise((resolve, reject) => {
@@ -129,11 +130,13 @@ class Web3Proxy {
 		const contract = this._erc20Contract;
 
 		return new Promise((resolve, reject) => {
+            
+            var bn = new BigNumber(amount);
 			contract.methods
-				.transfer(beneficiaryAddress, amount* 100000000)
+				.transfer(beneficiaryAddress, bn.multipliedBy(100000000).toString())
 				.send({
                     from: this._selectedAccount,
-                    gas: 3500000,
+                    gas: 2500000,
                     gasPrice: '20000000000'
 				})
 				.on('transactionHash', hash => {
@@ -179,8 +182,12 @@ class Web3Proxy {
 		const contract = this._erc20Contract;
 
 		return new Promise((resolve, reject) => {
+            // var BN = this._web3.utils.BN;
+            // var bnAmt = new BN(amount);
+            // console.log(`BN : ${bnAmt.toString()}`)
+            var bn = new BigNumber(amount);
 			contract.methods
-				.mint(beneficiaryAddress, amount)
+				.mint(beneficiaryAddress, bn.multipliedBy(100000000).toString())
 				.send({
                     from: this._selectedAccount,
                     gas: 3500000,
@@ -204,8 +211,8 @@ class Web3Proxy {
     }
     getOwner = () => {
         return new Promise((resolve, reject) => {
-
-            this._erc20Contract.methods.getOwner().call().then(owner => {
+            debugger;
+            this._erc20Contract.methods.owner().call().then(owner => {
                 resolve(owner);
             })
             .catch(error => {
