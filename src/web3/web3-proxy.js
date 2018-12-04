@@ -1,5 +1,7 @@
 import Web3 from 'web3';
 import {BigNumber} from 'bignumber.js';
+let regeneratorRuntime =  require("regenerator-runtime");
+
 class Web3Proxy {
 	constructor(
 		erc20ContractAbiJson,
@@ -23,34 +25,45 @@ class Web3Proxy {
 			this._web3old = window.web3;
 			this.initWithCurrentProvider(web3.currentProvider);
 		}
-	}
+    }
+    
+    updateAccountsNetwork =  () => {
+        // Get accounts info
+        try {
+            this._web3.eth.getAccounts().then((accounts) => {
+            let account = accounts.length > 0 ? accounts[0] : undefined;
+            if (account !== this._selectedAccount) {
+                this._selectedAccount = account;
+                this._selectionChangeHandler();
+            }
+        })
 
-	initWithCurrentProvider = provider => {
-        this._web3 = new Web3(provider);
-        this.BN = this._web3.utils.BN;
-        if(this._erc20ContractAddress){
-            this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
-        }else{
-            this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson);
+        } catch(error) {
+            console.log(`Error retreiving accounts: ${error}`);
         }
-		this._timelockContract = new this._web3.eth.Contract(this._timelockTokenAbi);
-        
-        this._accountPollInterval = setInterval(() => {
-			this._pollForAccount();
-		}, 100);
-	};
+    }
 
-	_pollForAccount = () => {
-		this._web3.eth.getAccounts().then(accounts => {
-			let account = accounts.length > 0 ? accounts[0] : undefined;
-			if (account !== this._selectedAccount) {
-				this._selectedAccount = account;
-				this._selectionChangeHandler();
-			}
-		});
-    };
-    
-    
+
+	initWithCurrentProvider = async (provider) => {
+        if (provider) {
+            this._web3 = new Web3(provider);
+            await this._web3.eth.net.isListening()
+            this.updateAccountsNetwork();
+            if (provider.publicConfigStore) {
+                provider.publicConfigStore.on(
+                    'update', (...args) => {
+                        this.updateAccountsNetwork();
+                    }
+                );
+            }
+            if(this._erc20ContractAddress){
+                this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson, this._erc20ContractAddress);
+            }else{
+                this._erc20Contract = new this._web3.eth.Contract(this._erc20ContractAbiJson);
+            }
+            this._timelockContract = new this._web3.eth.Contract(this._timelockTokenAbi);   
+        }
+	};
 
 	getSelectedAccount = () => {
 		return this._selectedAccount;

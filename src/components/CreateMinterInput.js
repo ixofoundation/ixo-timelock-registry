@@ -30,7 +30,7 @@ class CreateMinter extends Component {
 
     }
 
-    componentWillMount(){
+    componentDidMount(){
         this.state.handleGetCurrentMinter().then((minter) => {
             this.setState({currentMinter: minter})
         })
